@@ -50,7 +50,7 @@ jobs:
         run: |
           cp out/arch/arm64/boot/Image anykernel/
           mkdir -p anykernel/dtb
-          cd out/arch/arm64/boot/dts/qcom/*.dtb anykernel/dtb/
+          cp out/arch/arm64/boot/dts/qcom/*.dtb anykernel/dtb/
           if [ -f out/arch/arm64/boot/dtbo.img ]; then
             cp out/arch/arm64/boot/dtbo.img anykernel/
           else
