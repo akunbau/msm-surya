@@ -34,6 +34,7 @@ jobs:
           export CC=clang
           export CLANG_TRIPLE=aarch64-linux-gnu-
           export CROSS_COMPILE=aarch64-linux-gnu-
+          export CROSS_COMPILE_ARM32=arm-linux-gnueabi-
           export CROSS_COMPILE_COMPAT=arm-linux-gnueabi-
           make O=out ARCH=arm64 surya_defconfig
           make -j$(nproc) O=out ARCH=arm64 CC=clang \
