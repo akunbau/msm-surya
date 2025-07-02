@@ -1,0 +1,65 @@
+name: Build Kernel with Prebuilt Clang
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout kernel source
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            bc bison flex libssl-dev libncurses-dev \
+            build-essential wget git python3 \
+            libelf-dev zip curl ccache \
+            gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+            
+      - name: Clone prebuilt Clang
+        run: |
+          git clone --depth=1 https://github.com/ekqiplur/qiclang.git clang
+
+      - name: Build kernel with Clang
+        run: |
+          export ARCH=arm64
+          export PATH=$PWD/clang/bin:$PATH
+          export CC=clang
+          export CLANG_TRIPLE=aarch64-linux-gnu-
+          export CROSS_COMPILE=aarch64-linux-gnu-
+          export CROSS_COMPILE_COMPAT=arm-linux-gnueabi-
+          make O=out ARCH=arm64 surya_defconfig
+          make -j$(nproc) O=out ARCH=arm64 CC=clang \
+            CROSS_COMPILE=$CROSS_COMPILE \
+            CROSS_COMPILE_COMPAT=$CROSS_COMPILE_COMPAT \
+            V=1
+            
+      - name: Clone AnyKernel3
+        run: |
+          git clone https://github.com/osm0sis/AnyKernel3.git anykernel
+      - name: Package kernel with AnyKernel3
+        run: |
+          cp out/arch/arm64/boot/Image anykernel/
+          cd anykernel
+          zip -r9 ../KerNullException.zip ./*
+      - name: Upload flashable kernel zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: flashable-kernel
+          path: KerNullException.zip
+
+      - name: Send flashable kernel to Telegram
+        env:
+          BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+        run: |
+          curl -F document=@KerNullException.zip \
+               -F chat_id=$CHAT_ID \
+               -F caption="✅ Build selesai! Ini kernel flashable terbaru." \
+               https://api.telegram.org/bot$BOT_TOKEN/sendDocument
