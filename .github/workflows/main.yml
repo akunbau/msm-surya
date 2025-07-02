@@ -24,7 +24,7 @@ jobs:
             
       - name: Clone prebuilt Clang
         run: |
-          git clone --depth=1 https://github.com/ekqiplur/qiclang.git clang
+          git clone --depth=1 -b 18 https://gitlab.com/ThankYouMario/android_prebuilts_clang-standalone.git clang
 
       - name: Build kernel with Clang
         run: |
