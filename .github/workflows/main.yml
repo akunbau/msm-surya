@@ -45,7 +45,7 @@ jobs:
             
       - name: Clone AnyKernel3
         run: |
-          git clone https://github.com/osm0sis/AnyKernel3.git anykernel
+          git clone https://github.com/ekqiplur/AnyKernel3.git anykernel
       - name: Package kernel with AnyKernel3
         run: |
           cp out/arch/arm64/boot/Image anykernel/
@@ -56,8 +56,11 @@ jobs:
           else
             echo "Warning: dtbo.img not found. Skipping copy."
           fi
+          rm -rf anykernel/ramdisk 
+          rm -rf anykernel/patch  
+          rm -rf anykernel/modules 
           cd anykernel
-          zip -r9 ../KerNullException.zip ./*
+          zip -r9 ../KerNullException-$(date '+%Y%m%d-%H%M').zip ./*
       - name: Upload flashable kernel zip
         uses: actions/upload-artifact@v4
         with:
