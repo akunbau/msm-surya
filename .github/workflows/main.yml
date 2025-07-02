@@ -48,6 +48,7 @@ jobs:
           git clone https://github.com/ekqiplur/AnyKernel3.git anykernel
       - name: Package kernel with AnyKernel3
         run: |
+          ZIP_NAME="KerNullException-$(date '+%Y%m%d-%H%M').zip"
           cp out/arch/arm64/boot/Image anykernel/
           mkdir -p anykernel/dtb
           cp out/arch/arm64/boot/dts/qcom/*.dtb anykernel/dtb/
@@ -60,7 +61,7 @@ jobs:
           rm -rf anykernel/patch  
           rm -rf anykernel/modules 
           cd anykernel
-          zip -r9 ../KerNullException-$(date '+%Y%m%d-%H%M').zip ./*
+          zip -r9 ../${ZIP_NAME} ./*
       - name: Upload flashable kernel zip
         uses: actions/upload-artifact@v4
         with:
@@ -72,7 +73,8 @@ jobs:
           BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
           CHAT_ID: ${{ secrets.TG_CHAT_ID }}
         run: |
-          curl -F document=@KerNullException.zip \
+          DYNAMIC_ZIP_NAME="KerNullException-$(date '+%Y%m%d-%H%M').zip"
+          curl -F document=@./${DYNAMIC_ZIP_NAME} \
                -F chat_id=$CHAT_ID \
                -F caption="✅ Build selesai! Ini kernel flashable terbaru." \
                https://api.telegram.org/bot$BOT_TOKEN/sendDocument
