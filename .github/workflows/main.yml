@@ -30,7 +30,7 @@ jobs:
       - name: Build kernel with Clang
         run: |
           export ARCH=arm64
-          export PATH=$PWD/clang/bin:$PATH
+          export PATH="$PWD/calang-clang/bin:$PATH"
           export CC=clang
           export LD=ld.lld
           export CLANG_TRIPLE=aarch64-linux-gnu-
@@ -67,7 +67,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: flashable-kernel
-          path: KerNullException.zip
+          path: ${ZIP_NAME}
 
       - name: Send flashable kernel to Telegram
         env:
