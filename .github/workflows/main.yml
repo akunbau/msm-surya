@@ -25,13 +25,14 @@ jobs:
             
       - name: Clone prebuilt Clang
         run: |
-          git clone --depth=1 https://bitbucket.org/rdxzv/clang-standalone.git clang
+          git clone --depth=1 https://github.com/ekqiplur/calang-clang.git clang
 
       - name: Build kernel with Clang
         run: |
           export ARCH=arm64
           export PATH=$PWD/clang/bin:$PATH
           export CC=clang
+          export LD=ld.lld
           export CLANG_TRIPLE=aarch64-linux-gnu-
           export CROSS_COMPILE=aarch64-linux-gnu-
           export CROSS_COMPILE_ARM32=arm-linux-gnueabi-
