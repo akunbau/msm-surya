@@ -32,7 +32,7 @@ jobs:
         run: |
           # Direktori bin dari toolchain prebuilt Anda
           # Sesuaikan 'clang-prebuilt' jika nama direktori Anda berbeda
-          TOOLCHAIN_BIN_DIR="$(pwd)/clang/bin" 
+          TOOLCHAIN_BIN_DIR="PATH="$GITHUB_WORKSPACE/clang/bin:$PATH"" 
           echo "PATH=${TOOLCHAIN_BIN_DIR}:$PATH" >> $GITHUB_ENV
           
           # Verifikasi bahwa lld ada di PATH sebelum membuat symlink
@@ -60,7 +60,7 @@ jobs:
       - name: Build kernel with Clang
         run: |
           export ARCH=arm64
-          export PATH="$PWD/clang/bin:$PATH"
+          export PATH="$GITHUB_WORKSPACE/clang/bin:$PATH"
           export CC=clang
           export LD=ld.lld
           export HOSTLD=ld.lld
