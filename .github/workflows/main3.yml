@@ -28,16 +28,10 @@ jobs:
           git clone --depth=1 https://github.com/ekqiplur/clangapan.git clang-prebuilt
         # git clone --depth=1 https://github.com/ekqiplur/calang-clang.git clang
 
-      - name: Set Toolchain PATH and Symlink LD
+      - name: Set Toolchain PATH and Create Symlinks for LLVM Tools
         run: |
-          # Direktori hasil clone repositori clangapan.git
           CLONED_REPO_DIR="$(pwd)/clang-prebuilt" 
-          # --- PERUBAHAN KRUSIAL DI SINI ---
-          # TOOLCHAIN_ROOT_DIR sekarang langsung menunjuk ke CLONED_REPO_DIR
-          # Karena sepertinya repositori Anda langsung berisi bin/, lib/, dll.
           TOOLCHAIN_ROOT_DIR="${CLONED_REPO_DIR}"
-          # ---------------------------------
-          # Direktori bin dari toolchain prebuilt Anda
           TOOLCHAIN_BIN_DIR="${TOOLCHAIN_ROOT_DIR}/bin"
 
           echo "DEBUG: Listing contents of the cloned toolchain repository:"
@@ -56,7 +50,7 @@ jobs:
           echo $PATH
           echo "---"
 
-          # Coba temukan lld atau ld.lld dan gunakan yang ditemukan
+          # Cari lld atau ld.lld dan gunakan yang ditemukan
           LLD_BINARY=""
           if [ -f "${TOOLCHAIN_BIN_DIR}/lld" ]; then
             LLD_BINARY="${TOOLCHAIN_BIN_DIR}/lld"
@@ -81,19 +75,34 @@ jobs:
               exit 1
           fi
 
-          # Buat symlink aarch64-linux-gnu-ld ke LLD_BINARY yang ditemukan
-          echo "Creating symlinks to ${LLD_BINARY}..."
+          echo "Creating symlinks for linker and compiler..."
+          # Buat symlink untuk linker (ld)
           ln -sf "${LLD_BINARY}" "${TOOLCHAIN_BIN_DIR}/aarch64-linux-gnu-ld"
           ln -sf "${LLD_BINARY}" "${TOOLCHAIN_BIN_DIR}/arm-linux-gnueabi-ld"
+
+          # --- BAGIAN BARU: Buat symlink untuk Clang cross-compiler ---
+          # Periksa apakah binary 'clang' ada di direktori bin toolchain Anda
+          if [ -f "${TOOLCHAIN_BIN_DIR}/clang" ]; then
+            ln -sf "${TOOLCHAIN_BIN_DIR}/clang" "${TOOLCHAIN_BIN_DIR}/aarch64-linux-gnu-clang"
+            ln -sf "${TOOLCHAIN_BIN_DIR}/clang" "${TOOLCHAIN_BIN_DIR}/arm-linux-gnueabi-clang"
+            echo "SUCCESS: Symlinks created for aarch64-linux-gnu-clang and arm-linux-gnueabi-clang."
+          else
+            echo "ERROR: 'clang' binary not found in ${TOOLCHAIN_BIN_DIR}. Cannot create symlinks for cross-compilers."
+            exit 1
+          fi
+          # --- AKHIR BAGIAN BARU ---
 
           echo "Verifying symlinks:"
           ls -l "${TOOLCHAIN_BIN_DIR}/aarch64-linux-gnu-ld"
           ls -l "${TOOLCHAIN_BIN_DIR}/arm-linux-gnueabi-ld"
+          ls -l "${TOOLCHAIN_BIN_DIR}/aarch64-linux-gnu-clang" # Verifikasi symlink baru
+          ls -l "${TOOLCHAIN_BIN_DIR}/arm-linux-gnueabi-clang" # Verifikasi symlink baru
           echo "---"
 
           echo "Verifying compilers:"
-          clang --version
-          aarch64-linux-gnu-clang --version
+          # Ini mungkin masih menampilkan clang sistem, tapi cross-compiler di bawah ini yang penting
+          clang --version 
+          aarch64-linux-gnu-clang --version # <<< INI SEHARUSNYA BERHASIL SEKARANG!
           arm-linux-gnueabi-clang --version
           echo "---"
         
