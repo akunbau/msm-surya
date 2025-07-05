@@ -25,14 +25,14 @@ jobs:
             
       - name: Clone prebuilt Clang
         run: |
-          git clone --depth=1 https://github.com/ekqiplur/clangapan.git clang
+          git clone --depth=1 https://github.com/ekqiplur/clangapan.git clang-prebuilt
         # git clone --depth=1 https://github.com/ekqiplur/calang-clang.git clang
 
       - name: Set Toolchain PATH and Symlink LD
         run: |
           # Direktori bin dari toolchain prebuilt Anda
           # Sesuaikan 'clang-prebuilt' jika nama direktori Anda berbeda
-          TOOLCHAIN_BIN_DIR="PATH="$GITHUB_WORKSPACE/clang/bin:$PATH"" 
+          TOOLCHAIN_BIN_DIR="$(pwd)/clang-prebuilt/clang-standalone-multi-arch/bin" # <<< PERHATIKAN PATH INI! 
           echo "PATH=${TOOLCHAIN_BIN_DIR}:$PATH" >> $GITHUB_ENV
           
           # Verifikasi bahwa lld ada di PATH sebelum membuat symlink
