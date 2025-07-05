@@ -30,31 +30,63 @@ jobs:
 
       - name: Set Toolchain PATH and Symlink LD
         run: |
+          # Direktori hasil clone repositori clangapan.git
+          CLONED_REPO_DIR="$(pwd)/clang-prebuilt" 
+          # Direktori root toolchain di dalam repositori yang dikloning
+          TOOLCHAIN_ROOT_DIR="${CLONED_REPO_DIR}/clang-standalone-multi-arch"
           # Direktori bin dari toolchain prebuilt Anda
-          # Sesuaikan 'clang-prebuilt' jika nama direktori Anda berbeda
-          TOOLCHAIN_BIN_DIR="$(pwd)/clang-prebuilt/clang-standalone-multi-arch/bin" # <<< PERHATIKAN PATH INI! 
+          TOOLCHAIN_BIN_DIR="${TOOLCHAIN_ROOT_DIR}/bin"
+
+          echo "DEBUG: Listing contents of the cloned toolchain repository:"
+          ls -R "${CLONED_REPO_DIR}" || true # Tampilkan isi repositori
+          echo "---"
+
+          echo "DEBUG: Listing contents of the detected toolchain root directory:"
+          ls -R "${TOOLCHAIN_ROOT_DIR}" || true # Tampilkan isi root toolchain
+          echo "---"
+
+          echo "DEBUG: Attempting to add ${TOOLCHAIN_BIN_DIR} to PATH"
           echo "PATH=${TOOLCHAIN_BIN_DIR}:$PATH" >> $GITHUB_ENV
           
-          # Verifikasi bahwa lld ada di PATH sebelum membuat symlink
-          if ! command -v lld &> /dev/null
-          then
-              echo "Error: 'lld' not found in PATH. Please ensure your prebuilt toolchain includes lld and its bin directory is correctly set in PATH."
-              exit 1
+          # Sekarang PATH sudah di-set untuk step-step berikutnya
+          # Coba verifikasi PATH yang aktif di shell ini
+          echo "DEBUG: Current PATH after modification in this step:"
+          echo $PATH
+          echo "---"
+
+          # Verifikasi bahwa lld ada di direktori bin yang baru ditambahkan ke PATH
+          echo "DEBUG: Checking for lld in the expected bin directory: ${TOOLCHAIN_BIN_DIR}/lld"
+          if [ -f "${TOOLCHAIN_BIN_DIR}/lld" ]; then
+            echo "lld found directly in ${TOOLCHAIN_BIN_DIR}!"
+            "${TOOLCHAIN_BIN_DIR}/lld" --version
+          elif command -v lld &> /dev/null; then
+            echo "lld found via 'command -v lld' in PATH! Location: $(which lld)"
+            lld --version
+          else
+            echo "ERROR: 'lld' not found in ${TOOLCHAIN_BIN_DIR} NOR in the overall PATH."
+            echo "Please ensure your prebuilt toolchain includes 'lld' and its 'bin' directory is correctly set in PATH."
+            exit 1
           fi
 
-          # *** LANGKAH PENTING: BUAT SYMLINK ***
+          # *** LANGKAH PENTING: BUAT SYMLINK (hanya jika lld ditemukan) ***
           # Buat symlink aarch64-linux-gnu-ld ke lld di dalam direktori bin toolchain Anda
+          # Gunakan "$(which lld)" untuk memastikan kita mengambil lld yang benar-benar ditemukan
+          echo "Creating symlinks for ld..."
           ln -sf "$(which lld)" "${TOOLCHAIN_BIN_DIR}/aarch64-linux-gnu-ld"
           ln -sf "$(which lld)" "${TOOLCHAIN_BIN_DIR}/arm-linux-gnueabi-ld" # Untuk ARM32 juga, jika diperlukan
 
           # Opsional: Verifikasi symlink sudah terbuat
+          echo "Verifying symlinks:"
           ls -l "${TOOLCHAIN_BIN_DIR}/aarch64-linux-gnu-ld"
           ls -l "${TOOLCHAIN_BIN_DIR}/arm-linux-gnueabi-ld"
+          echo "---"
 
           # Verifikasi bahwa compiler dapat ditemukan (optional, untuk debug)
+          echo "Verifying compilers:"
           clang --version
           aarch64-linux-gnu-clang --version
           arm-linux-gnueabi-clang --version
+          echo "---"
         
 
       - name: Build kernel with Clang
