@@ -32,46 +32,56 @@ jobs:
         run: |
           # Direktori hasil clone repositori clangapan.git
           CLONED_REPO_DIR="$(pwd)/clang-prebuilt" 
-          # Direktori root toolchain di dalam repositori yang dikloning
           TOOLCHAIN_ROOT_DIR="${CLONED_REPO_DIR}/clang-standalone-multi-arch"
-          # Direktori bin dari toolchain prebuilt Anda
           TOOLCHAIN_BIN_DIR="${TOOLCHAIN_ROOT_DIR}/bin"
 
           echo "DEBUG: Listing contents of the cloned toolchain repository:"
-          ls -R "${CLONED_REPO_DIR}" || true # Tampilkan isi repositori
+          ls -R "${CLONED_REPO_DIR}" || true
           echo "---"
 
           echo "DEBUG: Listing contents of the detected toolchain root directory:"
-          ls -R "${TOOLCHAIN_ROOT_DIR}" || true # Tampilkan isi root toolchain
+          ls -R "${TOOLCHAIN_ROOT_DIR}" || true
           echo "---"
 
-          # *** PERUBAHAN PENTING DI SINI ***
           # Export PATH agar langsung berlaku di step ini DAN step berikutnya
           export PATH="${TOOLCHAIN_BIN_DIR}:$PATH"
-          echo "PATH=${TOOLCHAIN_BIN_DIR}:$PATH" >> $GITHUB_ENV # Untuk step selanjutnya
+          echo "PATH=${TOOLCHAIN_BIN_DIR}:$PATH" >> $GITHUB_ENV
 
           echo "DEBUG: Current PATH after modification in this step:"
           echo $PATH
           echo "---"
 
-          # Verifikasi bahwa lld ada
-          echo "DEBUG: Checking for lld in the expected bin directory: ${TOOLCHAIN_BIN_DIR}/lld"
+          # *** PERUBAHAN UTAMA DI SINI ***
+          # Coba temukan lld atau ld.lld dan gunakan yang ditemukan
+          LLD_BINARY=""
           if [ -f "${TOOLCHAIN_BIN_DIR}/lld" ]; then
-            echo "lld found directly in ${TOOLCHAIN_BIN_DIR}!"
-            "${TOOLCHAIN_BIN_DIR}/lld" --version
+            LLD_BINARY="${TOOLCHAIN_BIN_DIR}/lld"
+            echo "SUCCESS: 'lld' found directly in ${TOOLCHAIN_BIN_DIR}."
+          elif [ -f "${TOOLCHAIN_BIN_DIR}/ld.lld" ]; then
+            LLD_BINARY="${TOOLCHAIN_BIN_DIR}/ld.lld"
+            echo "SUCCESS: 'ld.lld' found in ${TOOLCHAIN_BIN_DIR}. Will use this as the primary lld."
           elif command -v lld &> /dev/null; then
-            echo "lld found via 'command -v lld' in PATH! Location: $(which lld)"
-            lld --version
+            LLD_BINARY="$(which lld)"
+            echo "SUCCESS: 'lld' found via 'command -v lld' in PATH! Location: ${LLD_BINARY}"
+          elif command -v ld.lld &> /dev/null; then
+            LLD_BINARY="$(which ld.lld)"
+            echo "SUCCESS: 'ld.lld' found via 'command -v ld.lld' in PATH! Location: ${LLD_BINARY}"
           else
-            echo "ERROR: 'lld' not found in ${TOOLCHAIN_BIN_DIR} NOR in the overall PATH."
+            echo "ERROR: Neither 'lld' nor 'ld.lld' found in expected locations or PATH."
             echo "Please ensure your prebuilt toolchain includes 'lld' and its 'bin' directory is correctly set in PATH."
             exit 1
           fi
 
-          # *** LANGKAH PENTING: BUAT SYMLINK (hanya jika lld ditemukan) ***
-          echo "Creating symlinks for ld..."
-          ln -sf "$(which lld)" "${TOOLCHAIN_BIN_DIR}/aarch64-linux-gnu-ld"
-          ln -sf "$(which lld)" "${TOOLCHAIN_BIN_DIR}/arm-linux-gnueabi-ld" 
+          # *** PASTIKAN LLD_BINARY TERISI SEBELUM DIGUNAKAN ***
+          if [ -z "${LLD_BINARY}" ]; then
+              echo "FATAL ERROR: LLD_BINARY variable is empty. This should not happen if previous checks passed."
+              exit 1
+          fi
+
+          # Buat symlink aarch64-linux-gnu-ld ke LLD_BINARY yang ditemukan
+          echo "Creating symlinks to ${LLD_BINARY}..."
+          ln -sf "${LLD_BINARY}" "${TOOLCHAIN_BIN_DIR}/aarch64-linux-gnu-ld"
+          ln -sf "${LLD_BINARY}" "${TOOLCHAIN_BIN_DIR}/arm-linux-gnueabi-ld"
 
           echo "Verifying symlinks:"
           ls -l "${TOOLCHAIN_BIN_DIR}/aarch64-linux-gnu-ld"
