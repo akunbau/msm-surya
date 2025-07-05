@@ -45,16 +45,16 @@ jobs:
           ls -R "${TOOLCHAIN_ROOT_DIR}" || true # Tampilkan isi root toolchain
           echo "---"
 
-          echo "DEBUG: Attempting to add ${TOOLCHAIN_BIN_DIR} to PATH"
-          echo "PATH=${TOOLCHAIN_BIN_DIR}:$PATH" >> $GITHUB_ENV
-          
-          # Sekarang PATH sudah di-set untuk step-step berikutnya
-          # Coba verifikasi PATH yang aktif di shell ini
+          # *** PERUBAHAN PENTING DI SINI ***
+          # Export PATH agar langsung berlaku di step ini DAN step berikutnya
+          export PATH="${TOOLCHAIN_BIN_DIR}:$PATH"
+          echo "PATH=${TOOLCHAIN_BIN_DIR}:$PATH" >> $GITHUB_ENV # Untuk step selanjutnya
+
           echo "DEBUG: Current PATH after modification in this step:"
           echo $PATH
           echo "---"
 
-          # Verifikasi bahwa lld ada di direktori bin yang baru ditambahkan ke PATH
+          # Verifikasi bahwa lld ada
           echo "DEBUG: Checking for lld in the expected bin directory: ${TOOLCHAIN_BIN_DIR}/lld"
           if [ -f "${TOOLCHAIN_BIN_DIR}/lld" ]; then
             echo "lld found directly in ${TOOLCHAIN_BIN_DIR}!"
@@ -69,19 +69,15 @@ jobs:
           fi
 
           # *** LANGKAH PENTING: BUAT SYMLINK (hanya jika lld ditemukan) ***
-          # Buat symlink aarch64-linux-gnu-ld ke lld di dalam direktori bin toolchain Anda
-          # Gunakan "$(which lld)" untuk memastikan kita mengambil lld yang benar-benar ditemukan
           echo "Creating symlinks for ld..."
           ln -sf "$(which lld)" "${TOOLCHAIN_BIN_DIR}/aarch64-linux-gnu-ld"
-          ln -sf "$(which lld)" "${TOOLCHAIN_BIN_DIR}/arm-linux-gnueabi-ld" # Untuk ARM32 juga, jika diperlukan
+          ln -sf "$(which lld)" "${TOOLCHAIN_BIN_DIR}/arm-linux-gnueabi-ld" 
 
-          # Opsional: Verifikasi symlink sudah terbuat
           echo "Verifying symlinks:"
           ls -l "${TOOLCHAIN_BIN_DIR}/aarch64-linux-gnu-ld"
           ls -l "${TOOLCHAIN_BIN_DIR}/arm-linux-gnueabi-ld"
           echo "---"
 
-          # Verifikasi bahwa compiler dapat ditemukan (optional, untuk debug)
           echo "Verifying compilers:"
           clang --version
           aarch64-linux-gnu-clang --version
