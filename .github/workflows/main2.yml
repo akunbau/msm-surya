@@ -28,6 +28,35 @@ jobs:
           git clone --depth=1 https://github.com/ekqiplur/clangapan.git clang
         # git clone --depth=1 https://github.com/ekqiplur/calang-clang.git clang
 
+      - name: Set Toolchain PATH and Symlink LD
+        run: |
+          # Direktori bin dari toolchain prebuilt Anda
+          # Sesuaikan 'clang-prebuilt' jika nama direktori Anda berbeda
+          TOOLCHAIN_BIN_DIR="$(pwd)/clang/bin" 
+          echo "PATH=${TOOLCHAIN_BIN_DIR}:$PATH" >> $GITHUB_ENV
+          
+          # Verifikasi bahwa lld ada di PATH sebelum membuat symlink
+          if ! command -v lld &> /dev/null
+          then
+              echo "Error: 'lld' not found in PATH. Please ensure your prebuilt toolchain includes lld and its bin directory is correctly set in PATH."
+              exit 1
+          fi
+
+          # *** LANGKAH PENTING: BUAT SYMLINK ***
+          # Buat symlink aarch64-linux-gnu-ld ke lld di dalam direktori bin toolchain Anda
+          ln -sf "$(which lld)" "${TOOLCHAIN_BIN_DIR}/aarch64-linux-gnu-ld"
+          ln -sf "$(which lld)" "${TOOLCHAIN_BIN_DIR}/arm-linux-gnueabi-ld" # Untuk ARM32 juga, jika diperlukan
+
+          # Opsional: Verifikasi symlink sudah terbuat
+          ls -l "${TOOLCHAIN_BIN_DIR}/aarch64-linux-gnu-ld"
+          ls -l "${TOOLCHAIN_BIN_DIR}/arm-linux-gnueabi-ld"
+
+          # Verifikasi bahwa compiler dapat ditemukan (optional, untuk debug)
+          clang --version
+          aarch64-linux-gnu-clang --version
+          arm-linux-gnueabi-clang --version
+        
+
       - name: Build kernel with Clang
         run: |
           export ARCH=arm64
