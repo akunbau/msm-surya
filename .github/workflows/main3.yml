@@ -101,7 +101,7 @@ jobs:
       - name: Build kernel with Clang
         run: |
           export ARCH=arm64
-          export PATH="$GITHUB_WORKSPACE/clang/bin:$PATH"
+          export PATH="$GITHUB_WORKSPACE/clang-prebuilt/bin:$PATH"
           export CC=clang
           export LD=ld.lld
           export HOSTLD=ld.lld
