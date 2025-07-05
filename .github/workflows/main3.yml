@@ -32,7 +32,12 @@ jobs:
         run: |
           # Direktori hasil clone repositori clangapan.git
           CLONED_REPO_DIR="$(pwd)/clang-prebuilt" 
-          TOOLCHAIN_ROOT_DIR="${CLONED_REPO_DIR}/clang-standalone-multi-arch"
+          # --- PERUBAHAN KRUSIAL DI SINI ---
+          # TOOLCHAIN_ROOT_DIR sekarang langsung menunjuk ke CLONED_REPO_DIR
+          # Karena sepertinya repositori Anda langsung berisi bin/, lib/, dll.
+          TOOLCHAIN_ROOT_DIR="${CLONED_REPO_DIR}"
+          # ---------------------------------
+          # Direktori bin dari toolchain prebuilt Anda
           TOOLCHAIN_BIN_DIR="${TOOLCHAIN_ROOT_DIR}/bin"
 
           echo "DEBUG: Listing contents of the cloned toolchain repository:"
@@ -51,7 +56,6 @@ jobs:
           echo $PATH
           echo "---"
 
-          # *** PERUBAHAN UTAMA DI SINI ***
           # Coba temukan lld atau ld.lld dan gunakan yang ditemukan
           LLD_BINARY=""
           if [ -f "${TOOLCHAIN_BIN_DIR}/lld" ]; then
@@ -72,7 +76,6 @@ jobs:
             exit 1
           fi
 
-          # *** PASTIKAN LLD_BINARY TERISI SEBELUM DIGUNAKAN ***
           if [ -z "${LLD_BINARY}" ]; then
               echo "FATAL ERROR: LLD_BINARY variable is empty. This should not happen if previous checks passed."
               exit 1
