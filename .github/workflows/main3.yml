@@ -1,9 +1,6 @@
 name: Build Kernel with Prebuilt Clang
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
 
 jobs:
