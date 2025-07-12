@@ -10,6 +10,14 @@
 #include "ss/symtab.h"
 #include "../kernel_compat.h"
 
+#ifndef FILENAME_TRANS_KEY_DEFINED
+struct filename_trans_key {
+    const char *filename;
+    u32 tclass;
+};
+#define FILENAME_TRANS_KEY_DEFINED
+#endif
+
 // Add check Huawei Device
 #define KSU_SUPPORT_ADD_TYPE
 
