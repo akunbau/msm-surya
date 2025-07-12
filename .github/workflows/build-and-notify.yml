@@ -21,12 +21,12 @@ jobs:
 
       - name: Run Build Script
         id: build
-        run: bash build.sh 2>&1 | tee build.log
+        run: set -o pipefail; bash build.sh 2>&1 | tee build.log
 
       - name: List files in workspace
         if: success()
         run: |
-          echo "Melihat isi direktori kerja untuk memastikan file zip ada:"
+          # echo "Melihat isi direktori kerja untuk memastikan file zip ada:"
           ls -lA KernullException-*.zip
 
       - name: Send KSU Build

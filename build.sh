@@ -84,18 +84,19 @@ if ! [ -d "$TC_DIR" ]; then
 fi
 export PATH="$TC_DIR/bin:$PATH"
 
-if [[ $1 = "-r" || $1 = "--regen" ]]; then
+if [[ "${1:-}" = "-r" || "${1:-}" = "--regen" ]]; then
 	make O=out ARCH=arm64 $DEFCONFIG savedefconfig
 	cp out/defconfig "${DEFCONFIG_PATH}"
 	echo -e "\nSuccessfully regenerated defconfig at ${DEFCONFIG_PATH}"
 	exit
 fi
 
-if [[ $1 = "-c" || $1 = "--clean" ]]; then
+if [[ "${1:-}" = "-c" || "${1:-}" = "--clean" ]]; then
 	rm -rf out_*
     echo "Cleaned up build output directories."
     exit
 fi
+
 
 # Backup the original defconfig
 cp "${DEFCONFIG_PATH}" "${DEFCONFIG_PATH}.bak"
