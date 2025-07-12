@@ -1,4 +1,5 @@
 #!/bin/bash
+set -eu
 #
 # Modified Compile script for KernullException kernel
 # Based on StormBreaker script by Adithya R.
