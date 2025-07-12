@@ -24,25 +24,25 @@ jobs:
         run: bash build.sh 2>&1 | tee build.log
 
       - name: List files in workspace
-          if: success()
-          run: |
-            echo "Melihat isi direktori kerja untuk memastikan file zip ada:"
-            ls -lA
+        if: success()
+        run: |
+          echo "Melihat isi direktori kerja untuk memastikan file zip ada:"
+          ls -lA
 
       - name: Send Success Notification and Artifacts
-          if: success()
-          uses: appleboy/telegram-action@master
-          with:
-            to: ${{ secrets.TG_CHAT_ID }}
-            token: ${{ secrets.TG_BOT_TOKEN }}
-            message: |
-              ✅ Build Successful! ✅
+        if: success()
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TG_CHAT_ID }}
+          token: ${{ secrets.TG_BOT_TOKEN }}
+          message: |
+            ✅ **Build Successful!** ✅
 
+            Kernel has been compiled successfully.
+            Zips are attached below.
+          document: ./KernullException-*.zip
+          format: markdown
 
-              Kernel has been compiled successfully.
-              Zips are attached below.
-            document: ./KernullException-*.zip
-            format: markdown
       - name: Send Failure Notification with Log
         if: failure()
         uses: appleboy/telegram-action@master
