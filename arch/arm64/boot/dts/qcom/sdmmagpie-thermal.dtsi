@@ -1763,7 +1763,7 @@
 				type = "passive";
 			};
 			gold_trip: gold-trip {
-				temperature = <50000>;
+				temperature = <45000>;
 				hysteresis = <0>;
 				type = "passive";
 			};
@@ -1773,7 +1773,7 @@
 				type = "passive";
 			};
 			skin_gpu_trip: skin-gpu-trip {
-				temperature = <52000>;
+				temperature = <47000>;
 				hysteresis = <4000>;
 				type = "passive";
 			};
@@ -1783,7 +1783,7 @@
 				type = "passive";
 			};
 			silver_trip: silver-trip {
-				temperature = <54000>;
+				temperature = <49000>;
 				hysteresis = <0>;
 				type = "passive";
 			};
