@@ -94,6 +94,12 @@
 		qcom,bypass-client-list = <0x3004>;
 		#cooling-cells = <2>;
 	};
+	
+	cpu_cooling: cpu-cooling {
+        compatible = "qcom,cpu-cooling";
+        qcom,cpu-list = <&CPU6 &CPU7>;
+        #cooling-cells = <2>;
+    };
 };
 
 &thermal_zones {
@@ -1763,7 +1769,7 @@
 				type = "passive";
 			};
 			gold_trip: gold-trip {
-				temperature = <45000>;
+				temperature = <43000>;
 				hysteresis = <0>;
 				type = "passive";
 			};
@@ -1773,7 +1779,7 @@
 				type = "passive";
 			};
 			skin_gpu_trip: skin-gpu-trip {
-				temperature = <47000>;
+				temperature = <45000>;
 				hysteresis = <4000>;
 				type = "passive";
 			};
@@ -1783,7 +1789,7 @@
 				type = "passive";
 			};
 			silver_trip: silver-trip {
-				temperature = <49000>;
+				temperature = <47000>;
 				hysteresis = <0>;
 				type = "passive";
 			};
@@ -1792,9 +1798,22 @@
 				hysteresis = <4000>;
 				type = "passive";
 			};
+			skin_trip_40: skin-trip-40 {
+				temperature = <40000>; // 40°C
+				hysteresis = <2000>;
+				type = "passive";
+			};
 		};
 
 		cooling-maps {
+			skin_cpu6_hotplug {
+				trip = <&skin_trip_40>;
+				cooling-device = <&CPU6 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>;
+			};
+			skin_cpu7_hotplug {
+				trip = <&skin_trip_40>;
+				cooling-device = <&CPU7 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>;
+			};
 			skin_cpu6 {
 				trip = <&gold_trip>;
 				cooling-device =
